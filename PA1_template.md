@@ -8,8 +8,8 @@ output:
 
 ## Loading and preprocessing the data
 
-```{r}
 
+```r
 fileURL <- "https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip"
 fileLocal <- "activity.zip"
 fileLocalExt <- "activity.csv"
@@ -27,22 +27,65 @@ activityData <- read.csv(unz(
 
 Before we proceed, its good to have a look at data. 
 
-```{r}
+
+```r
 dim(activityData)
+```
+
+```
+## [1] 17568     3
+```
+
+```r
 str(activityData)
+```
+
+```
+## 'data.frame':	17568 obs. of  3 variables:
+##  $ steps   : int  NA NA NA NA NA NA NA NA NA NA ...
+##  $ date    : Factor w/ 61 levels "2012-10-01","2012-10-02",..: 1 1 1 1 1 1 1 1 1 1 ...
+##  $ interval: int  0 5 10 15 20 25 30 35 40 45 ...
+```
+
+```r
 head(activityData)
+```
+
+```
+##   steps       date interval
+## 1    NA 2012-10-01        0
+## 2    NA 2012-10-01        5
+## 3    NA 2012-10-01       10
+## 4    NA 2012-10-01       15
+## 5    NA 2012-10-01       20
+## 6    NA 2012-10-01       25
+```
+
+```r
 summary(activityData)
+```
+
+```
+##      steps                date          interval     
+##  Min.   :  0.00   2012-10-01:  288   Min.   :   0.0  
+##  1st Qu.:  0.00   2012-10-02:  288   1st Qu.: 588.8  
+##  Median :  0.00   2012-10-03:  288   Median :1177.5  
+##  Mean   : 37.38   2012-10-04:  288   Mean   :1177.5  
+##  3rd Qu.: 12.00   2012-10-05:  288   3rd Qu.:1766.2  
+##  Max.   :806.00   2012-10-06:  288   Max.   :2355.0  
+##  NA's   :2304     (Other)   :15840
 ```
 ## What is mean total number of steps taken per day?
 
-```{r, echo=TRUE, message=FALSE}
+
+```r
 # Enable packages
 library(lubridate)
 library(dplyr)
 ```
 
-```{r}
 
+```r
 date_wise_steps <- select(activityData, steps, date, interval) %>%
   group_by(date) %>%
   summarise(total_steps = sum(steps, na.rm = TRUE))
@@ -60,12 +103,15 @@ abline(v = meansteps, col = "blue", lwd = 2, lty = 4)
 abline(v = mediansteps, col = "pink", lwd = 2, lty = 4)
 ```
 
-Mean of total steps per days is : **`r meansteps`**  
-Median of total steps per days is : **`r mediansteps`**
+![](PA1_template_files/figure-html/unnamed-chunk-4-1.png)<!-- -->
+
+Mean of total steps per days is : **9354**  
+Median of total steps per days is : **10395**
 
 ## What is the average daily activity pattern?
 
-```{r}
+
+```r
 interval_wise_steps <- select(activityData, steps, date, interval) %>%
   group_by(interval) %>%
   summarise(average_steps = mean(steps, na.rm = TRUE))
@@ -85,19 +131,22 @@ abline(h = max_steps, col = "red")
 abline(v = top_interval, col = "red")
 ```
 
-**`r round(max_steps,0)`** steps are the maximum numbers of steps taken in **`r top_interval`** ^th^ interval of 5 minutes intervals.
+![](PA1_template_files/figure-html/unnamed-chunk-5-1.png)<!-- -->
+
+**206** steps are the maximum numbers of steps taken in **835** ^th^ interval of 5 minutes intervals.
 
 ## Imputing missing values
 
-```{r}
+
+```r
 # step 1 count number of missing data records
 na_count <- count(activityData[is.na(activityData$steps),])
 ```
 
-Total **`r na_count`** number of records out of **`r dim(activityData)[1]`** have missing values. I have decided to replace NA with mean value of given 5 minute interval. 
+Total **2304** number of records out of **17568** have missing values. I have decided to replace NA with mean value of given 5 minute interval. 
 
-```{r}
 
+```r
 # step 2 and 3 replace NA with mean steps value for given 5 minute interval and create new dataset
 #cat(str(activityData))
 UpdatedActivityData <- select(activityData, steps, date, interval) %>%
@@ -124,11 +173,12 @@ mediansteps <- median(date_wise_steps$total_steps)
 
 abline(v = as.integer(meansteps), col = "blue", lwd = 2, lty = 4)
 abline(v = as.integer(mediansteps), col = "pink", lwd = 2, lty = 4)
-
 ```
 
-Mean of total steps per days is : **`r as.integer(meansteps)`**  
-Median of total steps per days is : **`r as.integer(mediansteps)`**  
+![](PA1_template_files/figure-html/unnamed-chunk-7-1.png)<!-- -->
+
+Mean of total steps per days is : **10766**  
+Median of total steps per days is : **10766**  
 
 After imputing NA's from data 2 major observations are:  
 1. Number of total steps for 0 step redused drastically.  
@@ -137,13 +187,26 @@ After imputing NA's from data 2 major observations are:
 
 ## Are there differences in activity patterns between weekdays and weekends?
 
-```{r}
+
+```r
 UpdatedActivityData$day <- ifelse(
   wday(UpdatedActivityData$date, label = TRUE) %in% c("Sun","Sat"),"weekend","weekday"
   )
 
 head(as.data.frame(UpdatedActivityData))
+```
 
+```
+##       steps       date interval     day
+## 1 1.7169811 2012-10-01        0 weekday
+## 2 0.3396226 2012-10-01        5 weekday
+## 3 0.1320755 2012-10-01       10 weekday
+## 4 0.1509434 2012-10-01       15 weekday
+## 5 0.0754717 2012-10-01       20 weekday
+## 6 2.0943396 2012-10-01       25 weekday
+```
+
+```r
 #par("mfrow" = c(2,1))
 library(lattice) 
 
@@ -157,13 +220,15 @@ xyplot(average_steps ~ interval | day, data = interval_wise_steps,
        type = "l",
        ylab = "Avarage number of steps",
        layout = c(1,2))
-
 ```
+
+![](PA1_template_files/figure-html/unnamed-chunk-8-1.png)<!-- -->
 
 There is difference in patterns in Weekday and Weekend. Compaired to weekends, weekdays have steep peak in early hours. 
 
 
-```{r}
+
+```r
 rm(list = ls())
 ```
 
